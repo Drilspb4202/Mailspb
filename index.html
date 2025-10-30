@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description" content="Временная почта - создавайте одноразовые email адреса для защиты вашей конфиденциальности. Генератор случайных данных, логинов и паролей.">
+    <meta name="keywords" content="временная почта, temp mail, одноразовая почта, защита email, генератор паролей">
+    <meta name="author" content="MailSlurp App">
+    
+    <!-- Mobile Web App -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MailSlurp">
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#0f0f23">
+    <meta name="msapplication-navbutton-color" content="#0f0f23">
+    <meta name="apple-mobile-web-app-status-bar-style" content="#0f0f23">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="MailSlurp - Временная почта">
+    <meta property="og:description" content="Создавайте временные email адреса и защищайте свою конфиденциальность">
+    <meta property="og:type" content="website">
+    
+    <title>MailSlurp - Временная почта</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Анимированный фон -->
+    <div class="background">
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+    </div>
+
+    <!-- Главный контейнер -->
+    <div class="container">
+        <!-- Заголовок -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-envelope"></i>
+                <h1 data-i18n="app.title">MailSlurp</h1>
+            </div>
+            <div class="header-controls">
+                <button class="btn-icon" id="langToggle" title="Change Language">
+                    <i class="fas fa-language"></i>
+                    <span id="currentLang">RU</span>
+                </button>
+                <button class="btn-icon" id="themeToggle" title="Toggle Theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Навигация -->
+        <nav class="navigation">
+            <button class="nav-item active" data-section="inbox">
+                <i class="fas fa-inbox"></i>
+                <span data-i18n="nav.inbox">Входящие</span>
+            </button>
+            <button class="nav-item" data-section="create">
+                <i class="fas fa-plus-circle"></i>
+                <span data-i18n="nav.create">Создать почту</span>
+            </button>
+            <button class="nav-item" data-section="generator">
+                <i class="fas fa-user-shield"></i>
+                <span data-i18n="nav.generator">Генератор данных</span>
+            </button>
+            <button class="nav-item" data-section="settings">
+                <i class="fas fa-cog"></i>
+                <span data-i18n="nav.settings">Настройки</span>
+            </button>
+        </nav>
+
+        <!-- Секция создания почты -->
+        <section class="content-section active" id="create">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-envelope-open-text"></i>
+                    <h2 data-i18n="create.title">Создать временную почту</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label data-i18n="create.lifetime">Время жизни:</label>
+                        <select id="emailLifetime" class="input-field">
+                            <option value="600000">10 минут</option>
+                            <option value="1800000">30 минут</option>
+                            <option value="3600000" selected>1 час</option>
+                            <option value="7200000">2 часа</option>
+                            <option value="86400000">24 часа</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" id="createInboxBtn">
+                        <i class="fas fa-magic"></i>
+                        <span data-i18n="create.generate">Создать почту</span>
+                    </button>
+                    
+                    <!-- Созданная почта -->
+                    <div id="createdEmailBox" class="email-box" style="display: none;">
+                        <div class="email-display">
+                            <i class="fas fa-envelope"></i>
+                            <span id="createdEmail" class="email-address"></span>
+                        </div>
+                        <button class="btn btn-secondary" id="copyEmailBtn">
+                            <i class="fas fa-copy"></i>
+                            <span data-i18n="create.copy">Копировать</span>
+                        </button>
+                        <div class="email-timer">
+                            <i class="fas fa-clock"></i>
+                            <span data-i18n="create.expiresIn">Истекает через:</span>
+                            <span id="emailTimer">--:--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Секция входящих -->
+        <section class="content-section" id="inbox">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-inbox"></i>
+                    <h2 data-i18n="inbox.title">Входящие сообщения</h2>
+                    <button class="btn btn-icon" id="refreshInboxBtn">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="emailList" class="email-list">
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p data-i18n="inbox.empty">Нет сообщений. Создайте временную почту для получения писем.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Секция генератора данных -->
+        <section class="content-section" id="generator">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-user-shield"></i>
+                    <h2 data-i18n="generator.title">Генератор данных</h2>
+                </div>
+                <div class="card-body">
+                    <div class="generator-grid">
+                        <!-- Генератор имени -->
+                        <div class="generator-item">
+                            <div class="generator-header">
+                                <i class="fas fa-user"></i>
+                                <h3 data-i18n="generator.firstName">Имя</h3>
+                            </div>
+                            <div class="generator-result">
+                                <input type="text" id="generatedFirstName" class="input-field" readonly>
+                                <button class="btn btn-icon" onclick="app.ui.copyToClipboard('generatedFirstName')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <button class="btn btn-secondary" onclick="app.ui.generateFirstName()">
+                                <i class="fas fa-sync"></i>
+                                <span data-i18n="generator.generate">Генерировать</span>
+                            </button>
+                        </div>
+
+                        <!-- Генератор фамилии -->
+                        <div class="generator-item">
+                            <div class="generator-header">
+                                <i class="fas fa-user-tag"></i>
+                                <h3 data-i18n="generator.lastName">Фамилия</h3>
+                            </div>
+                            <div class="generator-result">
+                                <input type="text" id="generatedLastName" class="input-field" readonly>
+                                <button class="btn btn-icon" onclick="app.ui.copyToClipboard('generatedLastName')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <button class="btn btn-secondary" onclick="app.ui.generateLastName()">
+                                <i class="fas fa-sync"></i>
+                                <span data-i18n="generator.generate">Генерировать</span>
+                            </button>
+                        </div>
+
+                        <!-- Генератор логина -->
+                        <div class="generator-item">
+                            <div class="generator-header">
+                                <i class="fas fa-at"></i>
+                                <h3 data-i18n="generator.username">Логин</h3>
+                            </div>
+                            <div class="generator-result">
+                                <input type="text" id="generatedUsername" class="input-field" readonly>
+                                <button class="btn btn-icon" onclick="app.ui.copyToClipboard('generatedUsername')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <button class="btn btn-secondary" onclick="app.ui.generateUsername()">
+                                <i class="fas fa-sync"></i>
+                                <span data-i18n="generator.generate">Генерировать</span>
+                            </button>
+                        </div>
+
+                        <!-- Генератор пароля -->
+                        <div class="generator-item">
+                            <div class="generator-header">
+                                <i class="fas fa-key"></i>
+                                <h3 data-i18n="generator.password">Пароль</h3>
+                            </div>
+                            <div class="generator-result">
+                                <input type="text" id="generatedPassword" class="input-field" readonly>
+                                <button class="btn btn-icon" onclick="app.ui.copyToClipboard('generatedPassword')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="form-group">
+                                <label data-i18n="generator.passwordLength">Длина пароля:</label>
+                                <input type="range" id="passwordLength" min="8" max="32" value="16" class="slider">
+                                <span id="passwordLengthValue">16</span>
+                            </div>
+                            <button class="btn btn-secondary" onclick="app.ui.generatePassword()">
+                                <i class="fas fa-sync"></i>
+                                <span data-i18n="generator.generate">Генерировать</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Кнопка генерации всего -->
+                    <div class="mt-20 text-center">
+                        <button class="btn btn-primary" onclick="app.ui.generateAll()">
+                            <i class="fas fa-magic"></i>
+                            <span data-i18n="generator.generateAll">Сгенерировать всё</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Секция настроек -->
+        <section class="content-section" id="settings">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-cog"></i>
+                    <h2 data-i18n="settings.title">Настройки</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label data-i18n="settings.apiKeys">API ключи:</label>
+                        <div class="api-keys-list" id="apiKeysList"></div>
+                        <button class="btn btn-secondary" id="addApiKeyBtn">
+                            <i class="fas fa-plus"></i>
+                            <span data-i18n="settings.addKey">Добавить ключ</span>
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="settings.autoRefresh">Автообновление:</label>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="autoRefreshToggle" checked>
+                            <label for="autoRefreshToggle"></label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="settings.refreshInterval">Интервал обновления (сек):</label>
+                        <input type="number" id="refreshInterval" class="input-field" value="30" min="10" max="300">
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <i class="fas fa-envelope"></i>
+                            <div class="stat-value" id="totalInboxes">0</div>
+                            <div class="stat-label" data-i18n="settings.totalInboxes">Всего почтовых ящиков</div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-paper-plane"></i>
+                            <div class="stat-value" id="totalEmails">0</div>
+                            <div class="stat-label" data-i18n="settings.totalEmails">Всего писем</div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-key"></i>
+                            <div class="stat-value" id="activeKeys">0</div>
+                            <div class="stat-label" data-i18n="settings.activeKeys">Активных ключей</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Модальное окно для просмотра письма -->
+    <div class="modal" id="emailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="emailModalSubject"></h3>
+                <button class="btn-close" id="closeEmailModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="email-meta">
+                    <div><strong data-i18n="modal.from">От:</strong> <span id="emailModalFrom"></span></div>
+                    <div><strong data-i18n="modal.to">Кому:</strong> <span id="emailModalTo"></span></div>
+                    <div><strong data-i18n="modal.date">Дата:</strong> <span id="emailModalDate"></span></div>
+                </div>
+                <div class="email-content" id="emailModalBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для добавления API ключа -->
+    <div class="modal" id="addKeyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="modal.addKeyTitle">Добавить API ключ</h3>
+                <button class="btn-close" id="closeAddKeyModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label data-i18n="modal.apiKey">API ключ:</label>
+                    <input type="text" id="newApiKey" class="input-field" placeholder="Введите API ключ">
+                </div>
+                <button class="btn btn-primary" id="confirmAddKeyBtn">
+                    <i class="fas fa-plus"></i>
+                    <span data-i18n="modal.add">Добавить</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Уведомления -->
+    <div class="notifications" id="notifications"></div>
+
+    <!-- Скрипты -->
+    <script src="js/config.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/api-key-pool.js"></script>
+    <script src="js/api-key-manager.js"></script>
+    <script src="js/data-generator.js"></script>
+    <script src="js/performance-optimizer.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
+

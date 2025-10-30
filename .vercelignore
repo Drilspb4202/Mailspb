@@ -1,0 +1,31 @@
+# Игнорировать при деплое на Vercel
+
+# Node modules
+node_modules/
+
+# Логи
+*.log
+npm-debug.log*
+
+# Тесты
+test-api.html
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Документация для разработки
+API-KEYS-INFO.md
+SECURITY.md
+
+# Примеры
+js/config.example.js
+
+# Временные файлы
+*.tmp
+*.temp
+

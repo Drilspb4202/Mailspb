@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест MailSlurp API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #e0e0e0;
+        }
+        .test-section {
+            background: #16213e;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #00d4ff;
+        }
+        button {
+            background: linear-gradient(135deg, #00d4ff 0%, #ff00ff 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .result {
+            background: #0f0f23;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { color: #00ff88; }
+        .error { color: #ff3366; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Тест MailSlurp API</h1>
+    
+    <div class="test-section">
+        <h2>Тест 1: Проверка ключа</h2>
+        <button onclick="testApiKey()">Проверить подключение</button>
+        <div id="keyResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Тест 2: Создание Inbox</h2>
+        <button onclick="testCreateInbox()">Создать случайный inbox</button>
+        <button onclick="testCreateInboxWithName()">Создать с именем "test"</button>
+        <div id="inboxResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Тест 3: Список Inboxes</h2>
+        <button onclick="testGetInboxes()">Получить список</button>
+        <div id="listResult" class="result"></div>
+    </div>
+
+    <script>
+        // API ключи
+        const API_KEYS = [
+            "69c1983367897df2e0f28e68eeab1567312e7b8cb63b32924b13f09b4e5ef959",
+            "0d71400fe28471738cf0b933ffaa701d9ce7d9e09e07d52c271753c387f8bfcb",
+            "07da08f927f3c354bddcba093f38ee83f37ee265c7e1000e35a4ef236e5a43cb"
+        ];
+        
+        let currentKeyIndex = 0;
+        const BASE_URL = 'https://api.mailslurp.com';
+
+        function getApiKey() {
+            return API_KEYS[currentKeyIndex % API_KEYS.length];
+        }
+
+        function nextKey() {
+            currentKeyIndex++;
+            return getApiKey();
+        }
+
+        async function apiRequest(endpoint, options = {}) {
+            const apiKey = getApiKey();
+            
+            const defaultOptions = {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': apiKey
+                }
+            };
+
+            const finalOptions = {
+                ...defaultOptions,
+                ...options,
+                headers: {
+                    ...defaultOptions.headers,
+                    ...options.headers
+                }
+            };
+
+            console.log('Request:', endpoint, finalOptions);
+
+            const response = await fetch(`${BASE_URL}${endpoint}`, finalOptions);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+
+            return await response.json();
+        }
+
+        async function testApiKey() {
+            const resultDiv = document.getElementById('keyResult');
+            resultDiv.innerHTML = '⏳ Проверка...';
+            
+            try {
+                // Попытка получить информацию об аккаунте
+                const result = await apiRequest('/account');
+                resultDiv.innerHTML = '<span class="success">✅ Подключение успешно!</span>\n\n' + 
+                    JSON.stringify(result, null, 2);
+            } catch (error) {
+                resultDiv.innerHTML = '<span class="error">❌ Ошибка:</span>\n\n' + error.message;
+                console.error('Test failed:', error);
+            }
+        }
+
+        async function testCreateInbox() {
+            const resultDiv = document.getElementById('inboxResult');
+            resultDiv.innerHTML = '⏳ Создание inbox...';
+            
+            try {
+                const result = await apiRequest('/inboxes', {
+                    method: 'POST'
+                });
+                resultDiv.innerHTML = '<span class="success">✅ Inbox создан!</span>\n\n' + 
+                    JSON.stringify(result, null, 2);
+            } catch (error) {
+                resultDiv.innerHTML = '<span class="error">❌ Ошибка:</span>\n\n' + error.message;
+                console.error('Test failed:', error);
+            }
+        }
+
+        async function testCreateInboxWithName() {
+            const resultDiv = document.getElementById('inboxResult');
+            resultDiv.innerHTML = '⏳ Создание inbox с именем...';
+            
+            try {
+                const result = await apiRequest('/inboxes', {
+                    method: 'POST',
+                    body: JSON.stringify({ name: 'test' })
+                });
+                resultDiv.innerHTML = '<span class="success">✅ Inbox создан с именем!</span>\n\n' + 
+                    JSON.stringify(result, null, 2);
+            } catch (error) {
+                resultDiv.innerHTML = '<span class="error">❌ Ошибка:</span>\n\n' + error.message;
+                console.error('Test failed:', error);
+            }
+        }
+
+        async function testGetInboxes() {
+            const resultDiv = document.getElementById('listResult');
+            resultDiv.innerHTML = '⏳ Получение списка...';
+            
+            try {
+                const result = await apiRequest('/inboxes');
+                resultDiv.innerHTML = '<span class="success">✅ Список получен!</span>\n\n' + 
+                    'Всего inboxes: ' + (result.content ? result.content.length : result.length) + '\n\n' +
+                    JSON.stringify(result, null, 2);
+            } catch (error) {
+                resultDiv.innerHTML = '<span class="error">❌ Ошибка:</span>\n\n' + error.message;
+                console.error('Test failed:', error);
+            }
+        }
+
+        // Автоматически проверить подключение при загрузке
+        window.addEventListener('load', () => {
+            console.log('Тестовая страница загружена. Используемый ключ:', getApiKey());
+        });
+    </script>
+</body>
+</html>
+
