@@ -142,7 +142,7 @@ class MailSlurpUI {
             if (error.isLimitExceeded) {
                 errorMessage = '⚠️ API ключ исчерпал месячный лимит! Переключаемся на резервный...';
             } else if (error.status === 401 || error.status === 403) {
-                errorMessage = '❌ Ошибка авторизации. Проверьте API ключи в настройках.';
+                errorMessage = '❌ Ошибка авторизации. Проверьте API ключи в файле js/config.js.';
             } else if (error.status === 429) {
                 errorMessage = '⚠️ Превышен лимит запросов. Переключаемся на другой ключ...';
             } else if (error.response && error.response.message) {
@@ -161,9 +161,9 @@ class MailSlurpUI {
             const totalKeys = this.app.api.getKeyPool().getAllKeys().length;
             
             if (totalKeys === 0) {
-                errorMessage = '❌ API ключи не настроены!\n\nДобавьте ключи через:\n1. Настройки → API ключи → "Добавить ключ"\n2. Или создайте файл js/config.js с вашими ключами';
+                errorMessage = '❌ API ключи не настроены!\n\nСоздайте файл js/config.js с вашими API ключами MailSlurp.\nСмотрите пример в файле js/config.example.js';
             } else if (activeKeys === 0) {
-                errorMessage = '❌ Все API ключи исчерпаны! Добавьте новые ключи в настройках.';
+                errorMessage = '❌ Все API ключи исчерпаны! Добавьте новые ключи в файле js/config.js.';
             }
             
             this.showNotification(errorMessage, 'error');

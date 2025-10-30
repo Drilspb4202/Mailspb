@@ -106,7 +106,7 @@ class MailSlurpApi {
             
             // Если нет доступных ключей
             if (!this.keyManager.hasAvailableKeys()) {
-                console.error('❌ Все API ключи исчерпаны! Добавьте новые ключи в настройках.');
+                console.error('❌ Все API ключи исчерпаны! Добавьте новые ключи в файле js/config.js.');
             }
             
             throw error;
