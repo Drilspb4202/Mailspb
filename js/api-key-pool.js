@@ -5,7 +5,14 @@
 class ApiKeyPool {
     constructor() {
         // Получить API ключи из защищенного конфига
-        const apiKeys = window.API_CONFIG ? window.API_CONFIG.getKeys() : [];
+        let apiKeys = [];
+        try {
+            if (window.API_CONFIG && typeof window.API_CONFIG.getKeys === 'function') {
+                apiKeys = window.API_CONFIG.getKeys() || [];
+            }
+        } catch (error) {
+            console.warn('⚠️ Не удалось загрузить API ключи из config.js:', error);
+        }
         
         // Инициализировать пул ключей
         this.publicKeys = apiKeys.map(key => ({
@@ -17,46 +24,23 @@ class ApiKeyPool {
         this.maxUsagePerKey = 100; // Максимальное количество использований ключа
         this.currentKeyIndex = 0;
         
-        // Загрузить пользовательские ключи из localStorage
-        this.loadUserKeys();
-    }
-
-    /**
-     * Загрузить пользовательские ключи
-     */
-    loadUserKeys() {
-        const stored = localStorage.getItem('userApiKeys');
-        if (stored) {
-            try {
-                const userKeys = JSON.parse(stored);
-                userKeys.forEach(key => {
-                    this.publicKeys.push({
-                        key: key,
-                        usageCount: 0,
-                        isExhausted: false,
-                        isUserKey: true
-                    });
-                });
-            } catch (error) {
-                console.error('Ошибка загрузки пользовательских ключей:', error);
-            }
+        // Проверить, есть ли хотя бы один ключ
+        if (this.publicKeys.length === 0) {
+            console.warn('⚠️ API ключи не найдены! Создайте файл js/config.js с вашими API ключами');
+        } else {
+            console.log(`✅ Загружено ${this.publicKeys.length} API ключей из config.js`);
         }
-    }
-
-    /**
-     * Сохранить пользовательские ключи
-     */
-    saveUserKeys() {
-        const userKeys = this.publicKeys
-            .filter(k => k.isUserKey)
-            .map(k => k.key);
-        localStorage.setItem('userApiKeys', JSON.stringify(userKeys));
     }
 
     /**
      * Получить следующий доступный ключ
      */
     getNextKey() {
+        // Проверить, есть ли вообще ключи
+        if (this.publicKeys.length === 0) {
+            throw new Error('API ключи не настроены. Создайте файл js/config.js с вашими API ключами MailSlurp. Смотрите js/config.example.js для примера.');
+        }
+        
         // Найти первый неисчерпанный ключ
         for (let i = 0; i < this.publicKeys.length; i++) {
             const keyIndex = (this.currentKeyIndex + i) % this.publicKeys.length;
@@ -75,7 +59,7 @@ class ApiKeyPool {
             }
         }
         
-        throw new Error('Все API ключи исчерпаны');
+        throw new Error('Все API ключи исчерпаны! Добавьте новые ключи в файле js/config.js.');
     }
 
     /**
@@ -89,51 +73,13 @@ class ApiKeyPool {
     }
 
     /**
-     * Добавить пользовательский ключ
-     */
-    addUserKey(key) {
-        if (!key || key.trim() === '') {
-            throw new Error('Пустой ключ');
-        }
-        
-        // Проверить, не существует ли уже такой ключ
-        if (this.publicKeys.some(k => k.key === key)) {
-            throw new Error('Ключ уже существует');
-        }
-        
-        this.publicKeys.push({
-            key: key,
-            usageCount: 0,
-            isExhausted: false,
-            isUserKey: true
-        });
-        
-        this.saveUserKeys();
-        console.log('✅ Пользовательский ключ добавлен и сохранен');
-    }
-
-    /**
-     * Удалить пользовательский ключ
-     */
-    removeUserKey(key) {
-        const index = this.publicKeys.findIndex(k => k.key === key && k.isUserKey);
-        if (index !== -1) {
-            this.publicKeys.splice(index, 1);
-            this.saveUserKeys();
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * Получить все ключи
      */
     getAllKeys() {
         return this.publicKeys.map(k => ({
             key: k.key,
             usageCount: k.usageCount,
-            isExhausted: k.isExhausted,
-            isUserKey: k.isUserKey || false
+            isExhausted: k.isExhausted
         }));
     }
 

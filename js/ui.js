@@ -158,7 +158,11 @@ class MailSlurpUI {
             
             // Проверить, есть ли еще доступные ключи
             const activeKeys = this.app.api.getKeyPool().getActiveKeysCount();
-            if (activeKeys === 0) {
+            const totalKeys = this.app.api.getKeyPool().getAllKeys().length;
+            
+            if (totalKeys === 0) {
+                errorMessage = '❌ API ключи не настроены!\n\nДобавьте ключи через:\n1. Настройки → API ключи → "Добавить ключ"\n2. Или создайте файл js/config.js с вашими ключами';
+            } else if (activeKeys === 0) {
                 errorMessage = '❌ Все API ключи исчерпаны! Добавьте новые ключи в настройках.';
             }
             
@@ -448,10 +452,6 @@ class MailSlurpUI {
             document.getElementById('emailModal').classList.remove('active');
         });
 
-        document.getElementById('closeAddKeyModal').addEventListener('click', () => {
-            document.getElementById('addKeyModal').classList.remove('active');
-        });
-
         // Закрытие по клику вне модального окна
         this.modals.forEach(modal => {
             modal.addEventListener('click', (e) => {
@@ -460,26 +460,15 @@ class MailSlurpUI {
                 }
             });
         });
-
-        // Добавление API ключа
-        document.getElementById('confirmAddKeyBtn').addEventListener('click', () => {
-            this.addApiKey();
-        });
     }
 
     /**
      * Настройка настроек
      */
     setupSettings() {
-        const addKeyBtn = document.getElementById('addApiKeyBtn');
         const autoRefreshToggle = document.getElementById('autoRefreshToggle');
         const refreshInterval = document.getElementById('refreshInterval');
         const refreshInboxBtn = document.getElementById('refreshInboxBtn');
-
-        // Добавить ключ
-        addKeyBtn.addEventListener('click', () => {
-            document.getElementById('addKeyModal').classList.add('active');
-        });
 
         // Автообновление
         autoRefreshToggle.addEventListener('change', (e) => {
@@ -502,51 +491,6 @@ class MailSlurpUI {
     }
 
     /**
-     * Добавить API ключ
-     */
-    addApiKey() {
-        const input = document.getElementById('newApiKey');
-        const key = input.value.trim();
-
-        if (!key) {
-            this.showNotification('Введите ключ', 'error');
-            return;
-        }
-
-        try {
-            this.app.api.getKeyPool().addUserKey(key);
-            
-            input.value = '';
-            document.getElementById('addKeyModal').classList.remove('active');
-            
-            this.showNotification(
-                this.app.i18n.t('notifications.apiKeyAdded'),
-                'success'
-            );
-
-            this.updateSettingsUI();
-        } catch (error) {
-            this.showNotification(error.message, 'error');
-        }
-    }
-
-    /**
-     * Удалить API ключ
-     */
-    removeApiKey(key) {
-        if (confirm('Удалить этот ключ?')) {
-            this.app.api.getKeyPool().removeUserKey(key);
-            
-            this.showNotification(
-                this.app.i18n.t('notifications.apiKeyRemoved'),
-                'success'
-            );
-
-            this.updateSettingsUI();
-        }
-    }
-
-    /**
      * Обновить UI настроек
      */
     updateSettingsUI() {
@@ -556,30 +500,39 @@ class MailSlurpUI {
 
         keysList.innerHTML = '';
 
-        keys.forEach(keyData => {
-            const keyItem = document.createElement('div');
-            keyItem.className = 'api-key-item';
-            if (!keyData.isExhausted) keyItem.classList.add('active');
-            if (keyData.isExhausted) keyItem.classList.add('exhausted');
-
-            const maskedKey = keyData.key.substring(0, 8) + '...' + keyData.key.substring(keyData.key.length - 4);
-
-            keyItem.innerHTML = `
-                <div class="api-key-info">
-                    <div class="api-key-value">${maskedKey}</div>
-                    <div class="api-key-usage">Использований: ${keyData.usageCount} ${keyData.isExhausted ? '(Исчерпан)' : ''}</div>
+        // Если ключей нет, показать информационное сообщение
+        if (keys.length === 0) {
+            keysList.innerHTML = `
+                <div class="api-key-empty" style="padding: 20px; text-align: center; background: rgba(255, 193, 7, 0.1); border-radius: 8px; margin-bottom: 15px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2em; color: #ffc107; margin-bottom: 10px;"></i>
+                    <p style="margin: 10px 0; color: #fff;"><strong>API ключи не настроены</strong></p>
+                    <p style="margin: 5px 0; color: rgba(255, 255, 255, 0.7); font-size: 0.9em;">
+                        Для работы приложения необходимо создать файл js/config.js с вашими API ключами MailSlurp.
+                    </p>
+                    <p style="margin: 5px 0; color: rgba(255, 255, 255, 0.7); font-size: 0.9em;">
+                        Смотрите пример в файле js/config.example.js. Получите ключи на <a href="https://www.mailslurp.com" target="_blank" style="color: #4CAF50;">mailslurp.com</a>
+                    </p>
                 </div>
-                ${keyData.isUserKey ? `<button class="btn-remove" data-key="${keyData.key}">Удалить</button>` : ''}
             `;
+        } else {
+            keys.forEach(keyData => {
+                const keyItem = document.createElement('div');
+                keyItem.className = 'api-key-item';
+                if (!keyData.isExhausted) keyItem.classList.add('active');
+                if (keyData.isExhausted) keyItem.classList.add('exhausted');
 
-            if (keyData.isUserKey) {
-                keyItem.querySelector('.btn-remove').addEventListener('click', () => {
-                    this.removeApiKey(keyData.key);
-                });
-            }
+                const maskedKey = keyData.key.substring(0, 8) + '...' + keyData.key.substring(keyData.key.length - 4);
 
-            keysList.appendChild(keyItem);
-        });
+                keyItem.innerHTML = `
+                    <div class="api-key-info">
+                        <div class="api-key-value">${maskedKey}</div>
+                        <div class="api-key-usage">Использований: ${keyData.usageCount} ${keyData.isExhausted ? '(Исчерпан)' : ''}</div>
+                    </div>
+                `;
+
+                keysList.appendChild(keyItem);
+            });
+        }
 
         // Обновить статистику
         document.getElementById('totalInboxes').textContent = this.app.getInboxes().length;

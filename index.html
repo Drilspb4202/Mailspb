@@ -250,10 +250,9 @@
                     <div class="form-group">
                         <label data-i18n="settings.apiKeys">API ключи:</label>
                         <div class="api-keys-list" id="apiKeysList"></div>
-                        <button class="btn btn-secondary" id="addApiKeyBtn">
-                            <i class="fas fa-plus"></i>
-                            <span data-i18n="settings.addKey">Добавить ключ</span>
-                        </button>
+                        <p style="margin-top: 10px; color: rgba(255, 255, 255, 0.7); font-size: 0.9em;">
+                            Ключи настраиваются в файле <code>js/config.js</code>. См. пример в <code>js/config.example.js</code>
+                        </p>
                     </div>
                     <div class="form-group">
                         <label data-i18n="settings.autoRefresh">Автообновление:</label>
@@ -304,28 +303,6 @@
                     <div><strong data-i18n="modal.date">Дата:</strong> <span id="emailModalDate"></span></div>
                 </div>
                 <div class="email-content" id="emailModalBody"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модальное окно для добавления API ключа -->
-    <div class="modal" id="addKeyModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 data-i18n="modal.addKeyTitle">Добавить API ключ</h3>
-                <button class="btn-close" id="closeAddKeyModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label data-i18n="modal.apiKey">API ключ:</label>
-                    <input type="text" id="newApiKey" class="input-field" placeholder="Введите API ключ">
-                </div>
-                <button class="btn btn-primary" id="confirmAddKeyBtn">
-                    <i class="fas fa-plus"></i>
-                    <span data-i18n="modal.add">Добавить</span>
-                </button>
             </div>
         </div>
     </div>

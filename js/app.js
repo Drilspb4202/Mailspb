@@ -49,6 +49,10 @@ class MailSlurpApp {
             // Инициализировать интернационализацию
             this.i18n.init();
             
+            // Проверить наличие API ключей
+            const activeKeys = this.api.getKeyPool().getActiveKeysCount();
+            const totalKeys = this.api.getKeyPool().getAllKeys().length;
+            
             // Загрузить сохраненные данные
             this.loadStoredData();
             
@@ -57,13 +61,26 @@ class MailSlurpApp {
             
             console.log('MailSlurp приложение инициализировано');
             
-            // Показать приветственное сообщение
-            this.ui.showNotification(
-                this.i18n.currentLanguage === 'ru' 
-                    ? 'Добро пожаловать в MailSlurp!' 
-                    : 'Welcome to MailSlurp!',
-                'success'
-            );
+            // Показать предупреждение, если нет ключей
+            if (totalKeys === 0) {
+                this.ui.showNotification(
+                    '⚠️ API ключи не настроены! Создайте файл js/config.js с вашими API ключами MailSlurp. Смотрите js/config.example.js для примера.',
+                    'error'
+                );
+            } else if (activeKeys === 0) {
+                this.ui.showNotification(
+                    '⚠️ Все API ключи исчерпаны! Добавьте новые ключи в файле js/config.js.',
+                    'error'
+                );
+            } else {
+                // Показать приветственное сообщение
+                this.ui.showNotification(
+                    this.i18n.currentLanguage === 'ru' 
+                        ? 'Добро пожаловать в MailSlurp!' 
+                        : 'Welcome to MailSlurp!',
+                    'success'
+                );
+            }
         } catch (error) {
             console.error('Ошибка инициализации приложения:', error);
         }
